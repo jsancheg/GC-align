@@ -784,6 +784,47 @@ alignGCMS <- function(T,X,Seg,Slack)
 }
 
 
+Warping <- function(channel)  
+{ 
+  temp1 <- list()
+  # benefit function 
+  f <- function(xs,Seg,u,Slack,ts,te,X,T)
+  {
+    # xs : start warped position of segment on X 
+    # xs + Seg + u : end warped position of segment on X
+    # ts : start position of segment on T
+    # te : end position of segment on T
+    
+    xe = xs + Seg + u
+    
+    bounds <- seq(xs,xe,length.out = length(ts:te))
+    
+    aux <- approx(xs:xe,X[xs:xe],bounds)
+    
+    if (length(T[ts:te]) == length( X[xs:xe]) )
+    {
+      b <- X[xs:xe]
+    } else
+    {
+      b <- aux$y
+    }
+    a <- T[ts:te]
+    if ( all( c(var(a),var(b)) !=0 ) )
+      correlation <- cor(a,b)
+    else  correlation <- 0
+    
+    
+    
+    output <- list( corr = correlation, unwarped = a, warped = b)      
+    return(output)
+    
+  }
+  
+  temp1 <- f(x,Seg,u,Slack,Ix[i+1],Ix[i+2],X[,channel],T[,channel])
+  return(list(corr = temp1$corr, unwarped = temp1$unwarped,
+              warped = temp1$warped))
+}
+
 
 alignGCMS_Parallel <- function(T,X,Seg,Slack)
 {
@@ -847,6 +888,9 @@ alignGCMS_Parallel <- function(T,X,Seg,Slack)
   temp_warped <- list()
   a <- rep(0, ncol(T)*nrow(T))
   b <- rep(0, ncol(T)*nrow(T))
+  x <-0 
+  i <- N-1
+  
   for (i in (N-1):0)
   {
     #xstart: minimum start point of segment i in query signal
@@ -865,32 +909,28 @@ alignGCMS_Parallel <- function(T,X,Seg,Slack)
     {
       for (u in (d-Slack):(d+Slack))
       {
-        if(x+Seg+u <= Lt + 1 )
+        if( x+Seg+u <= Lt + 1 )
         {
-          temp_unwarped <-list()
-          temp_warped <- list()
-          temp1 <- list()
           
           n_cores <- detectCores(logical = TRUE) 
           cl <- makeCluster(n_cores - 1, type = "PSOCK")
           registerDoParallel(cl)
           
+
+  clusterExport(cl,list('Warping','x','i','u','Seg','Slack','Ix','X','T'),
+                envir = .GlobalEnv)
+  
+          channel <- 1:ncol(X)
+          tic("channel")
+          results <- c(parLapply(cl,channel,fun = Warping))
+          toc()
           
-          foreach(channel = 1:ncol(X)) %dopar%
-#           for (channel in 1:ncol(X)) 
-          Warping <- function(channel,x,i,u)  
+          for(channel in 1:ncol(X))
           {
-            temp1[[channel]] <- f(x,Seg,u,Slack,Ix[i+1],Ix[i+2],X[,channel],T[,channel])
-            temp_unwarped[[channel]] <- temp1[[channel]]$unwarped
-            temp_warped[[channel]] <- temp1[[channel]]$warped
-            return(list(temp1= temp1,temp_unwarped = temp_unwarped,
-                        temp_warped = temp_warped))
+            temp_warped[[channel]] <- results[[channel]]$warped
+            temp_unwarped[[channel]] <- results[[channel]]$unwarped
           }
           
-          
-          clusterExport(cl,list('Warping','T','X','Ix','f'))
-          
-          results <- c(parLapply(cl,'channel','x','i','u',fun = Warping))
           a <- unlist(temp_unwarped)
           b <- unlist(temp_warped)
           
@@ -904,7 +944,7 @@ alignGCMS_Parallel <- function(T,X,Seg,Slack)
           {
             F1[i+1,x] <- fsum
             U[i+1,x] <- u
-            aux1W[[i+1]] <- unlist(temp_warped)
+            aux1W[[i+1]] <- b
           }# End-if
           
         }# End-if
@@ -931,17 +971,17 @@ alignGCMS_Parallel <- function(T,X,Seg,Slack)
     u[i] <- U[i,Xw[i]]
     Xw[i+1] <- Xw[i]+Seg+u[i]
   }
-  for(i in 1:length(aux1W))
+  for(i_node in 1:length(aux1W))
   {
-    nelements <- length(aux1W[[i]])
-    if(i<length(aux1W))
+    nelements <- length(aux1W[[i_node]])
+    if(i_node<length(aux1W))
     {
-      aux2W[[i]] <- aux1W[[i]][1:(nelements-1)]
+      aux2W[[i_node]] <- aux1W[[i_node]][1:(nelements-1)]
     } else  
     {
-      aux2W[[i]] <- aux1W[[i]][1:(nelements)]
+      aux2W[[i_node]] <- aux1W[[i_node]][1:(nelements)]
     }
   }
   W <- unlist(aux2W)
-  return(list(X=Ix,Xw = Xw, u=u,F1=F1,U=U,W = W))
+  return(list(X=Ix,Ixw = Xw, u=u,F1=F1,U=U,W = W))
 }
