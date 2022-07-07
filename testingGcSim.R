@@ -1,4 +1,4 @@
-
+source("GC_Sim.R")
 set.seed(1)
 v1 <- c(50,110,140,175,190,230,250)
 u <- round(rnorm(7,5,2),0)
@@ -27,5 +27,6 @@ T1 <- gc2$print()
 
 plot(gc1$range(), B1, type = "l", col = "blue")
 lines(gc1$range(),T1, col = "green")
+
 
 
