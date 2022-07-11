@@ -1,7 +1,7 @@
 
 source("GC_Sim.R")
 ruta<-getwd()
-Data <- readRDS(paste0(ruta,"/Data/sample_data.rds"))
+Data <- readRDS(paste0(ruta,"/sample_data.rds"))
 
 str(Data)
 Data[1,,]
@@ -10,15 +10,19 @@ plot(Data[1,,100],type = "l")
 plot(Data[2,,100],type = "l")
 
 # set 1st signal GC-MS as a target
-T <- Data[1,,]
+T <- Data[1,,1:2]
 # set 2nd signal GC-MS as a query
-X <- Data[2,,]
+X <- Data[2,,1:2]
 
 Seg <- 15
 Slack <- 5
 
 tic("alignGCMS")
 Xaligned <- alignGCMS(T,X,Seg,Slack)
+toc()
+
+tic("alignGCMS_Parallel")
+Xaligned_Par <- alignGCMS_Parallel(T,X,Seg,Slack)
 toc()
 
 T<-Data[1,,100]

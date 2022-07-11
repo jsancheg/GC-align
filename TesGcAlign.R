@@ -32,6 +32,8 @@ WX1$W
 tic("alighGCMS_Parallel")
 WX1_Par <- alignGCMS_Parallel(T1,X1,Seg,Slack)
 toc()
+WX1_Par$W
+
 
 WX1_Par$
 

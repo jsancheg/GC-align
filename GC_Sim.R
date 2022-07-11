@@ -888,9 +888,8 @@ alignGCMS_Parallel <- function(T,X,Seg,Slack)
   temp_warped <- list()
   a <- rep(0, ncol(T)*nrow(T))
   b <- rep(0, ncol(T)*nrow(T))
-  x <-0 
   i <- N-1
-  
+  x <- 0  
   for (i in (N-1):0)
   {
     #xstart: minimum start point of segment i in query signal
@@ -904,7 +903,6 @@ alignGCMS_Parallel <- function(T,X,Seg,Slack)
 #                       "T","F1","U","aux1W","f",
 #                       "temp1","temp_unwarped","temp_warped",
 #                       "a","b"))
-
     for (x in xstart:xend)
     {
       for (u in (d-Slack):(d+Slack))
@@ -921,9 +919,9 @@ alignGCMS_Parallel <- function(T,X,Seg,Slack)
                 envir = .GlobalEnv)
   
           channel <- 1:ncol(X)
-          tic("channel")
+#          tic("channel")
           results <- c(parLapply(cl,channel,fun = Warping))
-          toc()
+#          toc()
           
           for(channel in 1:ncol(X))
           {
