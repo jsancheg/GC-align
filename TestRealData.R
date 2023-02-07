@@ -1,7 +1,11 @@
+GCPath <- "E:/University of Glasgow/AgnieskaPRoject/GC-align/"
 
-source("GC_Sim.R")
-ruta<-getwd()
-Data <- readRDS(paste0(ruta,"/sample_data.rds"))
+#source("GC_Sim.R")
+source(paste0(GCPath,"GC_Sim.R"))
+GCPath <- "E:/University of Glasgow/AgnieskaPRoject/GC-align/"
+
+
+Data <- readRDS(paste0(GCPath,"/sample_data.rds"))
 
 str(Data)
 Data[1,,]

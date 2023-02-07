@@ -5,7 +5,6 @@ source(paste0(AgnesProjPath,"GC_Sim.R"))
 
 T1 = c(0,1,1,2,5,6,5,5,4,4,3,2,1,1,0,0)
 X1 = c(0,0,1,1,1,2,3,5,5,6,6,5,3,1,1,0)
-
 X2  = c(0,0,1,1,1,2,3,5,5,6,6,5,2,1,1,0)
 
 
@@ -35,7 +34,6 @@ toc()
 WX1_Par$W
 
 
-WX1_Par$
 
 # align signal X2
 align(T1,X2,Seg,Slack)
@@ -61,6 +59,7 @@ toc()
 tic("AlignGCMS")
 WMX <- alignGCMS(MT,MX,Seg,Slack)
 toc()
+WMX$W
 
 tic("alignGCMS_Parallel")
 WMXPar <- alignGCMS_Parallel(MT,MX,Seg,Slack)
